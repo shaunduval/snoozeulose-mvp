@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>snoozeulose</title>
+<style>
+/* ===================== 1. tokens ===================== */
+:root {
+  --bg: #0b1020;
+  --surface: #161d33;
+  --surface-2: #1f2845;
+  --line: #29334f;
+  --text: #f2f4fa;
+  --text-dim: #8b94b0;
+  --accent: #ffb03a;
+  --accent-2: #ff6b4a;
+  --grad-sunrise: linear-gradient(135deg, #ffb03a, #ff6b4a);
+  --success: #4ade80;
+  --danger: #ff5c6c;
+  --placeholder: #39415c;
+  --font: ui-rounded, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --r-card: 16px;
+  --r-pill: 999px;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-6: 24px; --sp-8: 32px;
+}
+
+/* ===================== 2. reset / base ===================== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: #05070f;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  justify-content: center;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+h1, h2, h3 { font-weight: 800; letter-spacing: -0.01em; }
+
+/* ===================== 3. shell ===================== */
+#app {
+  position: relative;
+  width: 100%;
+  max-width: 430px;
+  height: 100dvh;
+  background: var(--bg);
+  overflow: hidden;
+}
+.screen {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: var(--sp-6) var(--sp-4) calc(76px + env(safe-area-inset-bottom));
+  display: none;
+}
+.screen.active { display: block; }
+
+#tabbar {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  background: rgba(11, 16, 32, 0.92);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 20;
+}
+#tabbar[hidden] { display: none; }
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 0 8px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+}
+.tab svg { width: 24px; height: 24px; }
+.tab.active { color: var(--accent); }
+.tab .dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: transparent;
+}
+.tab.active .dot { background: var(--accent); }
+
+/* ===================== 4. components ===================== */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+.btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px var(--sp-4);
+  border-radius: var(--r-pill);
+  font-weight: 700;
+  font-size: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.btn-accent {
+  background: var(--grad-sunrise);
+  border: none;
+  color: #1a0f05;
+}
+.btn-danger {
+  background: rgba(255, 92, 108, 0.12);
+  border: 1px solid rgba(255, 92, 108, 0.45);
+  color: var(--danger);
+}
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn .sub {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.75;
+  margin-top: 2px;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  font-size: 13px;
+  font-weight: 700;
+}
+.avatar {
+  flex: none;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--placeholder);
+}
+.avatar.lg { width: 64px; height: 64px; }
+.avatar.sm { width: 32px; height: 32px; }
+.img-ph {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r-card);
+  background: var(--placeholder);
+}
+.row { display: flex; align-items: center; gap: var(--sp-3); }
+.grow { flex: 1; min-width: 0; }
+.dim { color: var(--text-dim); }
+.small { font-size: 13px; }
+.tiny { font-size: 11px; }
+.good { color: var(--success); }
+.bad { color: var(--danger); }
+.mt2 { margin-top: var(--sp-2); }
+.mt3 { margin-top: var(--sp-3); }
+.mt4 { margin-top: var(--sp-4); }
+
+.seg {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  padding: 4px;
+  margin-bottom: var(--sp-4);
+}
+.seg button {
+  flex: 1;
+  padding: 9px 0;
+  border-radius: var(--r-pill);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+.seg button.on { background: var(--surface-2); color: var(--text); }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.chip.on {
+  background: rgba(255, 176, 58, 0.15);
+  border-color: rgba(255, 176, 58, 0.5);
+  color: var(--accent);
+}
+
+.delta {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-size: 13px;
+  font-weight: 800;
+}
+.delta.up { background: rgba(74, 222, 128, 0.12); color: var(--success); }
+.delta.down { background: rgba(255, 92, 108, 0.12); color: var(--danger); }
+
+.toggle {
+  flex: none;
+  width: 48px; height: 28px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  position: relative;
+  transition: background 0.2s;
+}
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  transition: transform 0.2s, background 0.2s;
+}
+.toggle.on { background: rgba(255, 176, 58, 0.25); border-color: var(--accent); }
+.toggle.on::after { transform: translateX(20px); background: var(--accent); }
+
+.link {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ===================== 5. screens ===================== */
+
+/* --- splash --- */
+#screen-splash {
+  z-index: 30;
+  background:
+    radial-gradient(ellipse 80% 45% at 50% -5%, rgba(255, 107, 74, 0.22), transparent 70%),
+    var(--bg);
+  display: none;
+  flex-direction: column;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+#screen-splash.active { display: flex; }
+#screen-splash.dismissed { opacity: 0; transform: translateY(-24px); pointer-events: none; }
+#screen-splash { padding-bottom: var(--sp-6); }
+.wordmark {
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  background: var(--grad-sunrise);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.tagline { color: var(--text-dim); font-weight: 600; margin-top: 2px; }
+.rule {
+  border-left: 3px solid var(--accent);
+  padding-left: var(--sp-3);
+}
+.rule.danger { border-left-color: var(--danger); }
+.rule h3 { font-size: 15px; margin-bottom: 2px; }
+
+/* --- home --- */
+.alarm-card { text-align: left; }
+.alarm-time {
+  font-size: 56px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.alarm-time span { font-size: 24px; font-weight: 800; color: var(--text-dim); }
+.stake { display: flex; gap: 8px; font-size: 13px; font-weight: 600; margin-top: 6px; }
+.stake b { flex: none; }
+
+/* --- crew --- */
+.lb-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); }
+.lb-row + .lb-row { border-top: 1px solid var(--line); }
+.lb-row.you {
+  border: 1px solid rgba(255, 176, 58, 0.55);
+  border-radius: 12px;
+  background: rgba(255, 176, 58, 0.06);
+  margin: 4px;
+}
+.lb-row.you + .lb-row { border-top: none; }
+.rank {
+  flex: none;
+  width: 26px;
+  font-weight: 800;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.rank.top { color: var(--accent); }
+.lb-pts { font-weight: 800; font-variant-numeric: tabular-nums; }
+.tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 92, 108, 0.12);
+  color: var(--danger);
+  font-size: 10px;
+  font-weight: 700;
+}
+.feed-item { position: relative; overflow: hidden; }
+.feed-item.down { border-left: 3px solid var(--danger); }
+.feed-item.up { border-left: 3px solid var(--success); }
+.feed-item.fresh { animation: slide-up 0.4s ease; }
+.reactions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: var(--sp-3); }
+
+/* --- you --- */
+.score-num { font-size: 44px; font-weight: 900; line-height: 1; }
+.badge {
+  flex: 1;
+  text-align: center;
+  padding: var(--sp-3) var(--sp-2);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+}
+.badge .medal {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  margin: 0 auto 6px;
+  background: var(--grad-sunrise);
+}
+.badge.locked { opacity: 0.4; }
+.badge.locked .medal { background: var(--placeholder); }
+.badge b { display: block; font-size: 12px; }
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 96px;
+  margin-top: var(--sp-3);
+}
+.bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; justify-content: flex-end; }
+.bar { width: 100%; border-radius: 6px 6px 3px 3px; background: var(--surface-2); border: 1px solid var(--line); }
+.bar.snoozed { background: rgba(255, 92, 108, 0.35); border-color: var(--danger); }
+.bar.future { opacity: 0.35; }
+.bar-wrap .tiny { color: var(--text-dim); }
+
+/* --- alarm overlay --- */
+#alarm-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  background:
+    radial-gradient(ellipse 75% 45% at 50% 18%, rgba(255, 107, 74, 0.28), transparent 70%),
+    #070b18;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-6) var(--sp-4);
+  text-align: center;
+}
+#alarm-overlay[hidden] { display: none; }
+.ring-glow { animation: pulse 1.6s ease-in-out infinite; }
+.bell { color: var(--accent); animation: wiggle 0.5s ease-in-out infinite; }
+.ring-time {
+  font-size: 76px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ring-time span { font-size: 30px; color: var(--text-dim); }
+#btn-rise { position: relative; overflow: hidden; }
+#btn-rise .fill {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: rgba(255, 255, 255, 0.28);
+}
+#btn-rise .fill.filling { width: 100%; transition: width 1.2s linear; }
+#btn-rise > span, #btn-rise > .sub { position: relative; }
+.result-delta { font-size: 54px; font-weight: 900; line-height: 1; }
+.broadcast {
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--sp-4);
+}
+
+/* ===================== 6. animation ===================== */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.06); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-9deg); }
+  50% { transform: rotate(9deg); }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ splash / how to play ============ -->
+  <section id="screen-splash" class="screen active">
+    <div style="text-align:center; padding-top: var(--sp-4);">
+      <div class="wordmark">snoozeulose</div>
+      <div class="tagline">the alarm clock with witnesses.</div>
+    </div>
+    <div class="img-ph mt4" role="img" aria-label="placeholder image"></div>
+    <div class="mt4">
+      <div class="card rule">
+        <h3>1. commit.</h3>
+        <p class="small dim">set your wake-up time. your crew can see it. no hiding.</p>
+      </div>
+      <div class="card rule">
+        <h3>2. rise.</h3>
+        <p class="small dim">up on time: +10 pts. hold a 3-day streak and every day pays +5 extra.</p>
+      </div>
+      <div class="card rule danger">
+        <h3>3. snooze u lose.</h3>
+        <p class="small dim">every snooze tap costs 20 pts and auto-posts to your crew. instantly. no take-backs.</p>
+      </div>
+      <div class="card rule">
+        <h3>4. win the week.</h3>
+        <p class="small dim">leaderboard resets monday. top spot gets bragging rights. bottom spot gets perceived.</p>
+      </div>
+    </div>
+    <div style="margin-top:auto;">
+      <button class="btn btn-accent" id="btn-start"><span>let's go</span></button>
+      <p class="tiny dim mt2" style="text-align:center;">your crew: tiah s. &middot; larry w. &middot; timothy s.</p>
+    </div>
+  </section>
+
+  <!-- ============ home ============ -->
+  <section id="screen-home" class="screen">
+    <div class="row">
+      <div class="avatar" aria-hidden="true"></div>
+      <div class="grow">
+        <h2 style="font-size:20px;">morning, shaun d.</h2>
+        <p class="small dim">saturday, jul 19</p>
+      </div>
+      <span class="pill" id="streak-chip">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2c1 4-4 6-4 11a4 4 0 0 0 8 0c0-2-1-3-1-3s3 1 3 5a7 7 0 0 1-14 0C4 9 10 7 12 2z"/></svg>
+        <span id="streak-chip-text">streak: 3 days</span>
+      </span>
+    </div>
+
+    <div class="card alarm-card mt4">
+      <div class="row">
+        <p class="tiny dim grow" style="text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">next alarm</p>
+        <span class="link dim" style="cursor:default;">edit</span>
+      </div>
+      <div class="alarm-time">7:00 <span>am</span></div>
+      <p class="small dim" id="alarm-sub">rings in 5 min</p>
+      <div class="stake good"><b>on the line:</b><span>+15 pts (streak bonus active)</span></div>
+      <div class="stake bad"><b>cost of snoozing:</b><span>&minus;20 pts, and everyone finds out</span></div>
+    </div>
+
+    <button class="btn btn-accent" id="btn-demo">
+      <span id="btn-demo-label">test the alarm (demo)</span>
+    </button>
+
+    <div class="card mt3">
+      <div class="row">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+        <div class="grow">
+          <b class="small">tonight: winding down at 10:00 pm</b>
+          <p class="small dim">bedtime goal 10:30 pm. screens down, sleepyhead.</p>
+        </div>
+      </div>
+      <p class="tiny dim mt2">snoozing starts the night before.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="avatar sm" aria-hidden="true"></div>
+        <p class="small grow" id="ticker-text">larry w. hit snooze 8 min ago. &minus;20 pts.</p>
+      </div>
+      <button class="link mt2" id="btn-ticker">see the damage &rarr;</button>
+    </div>
+
+    <div style="text-align:center; margin-top: var(--sp-4);">
+      <button class="tiny dim" id="btn-reset" style="text-decoration:underline;">reset demo</button>
+    </div>
+  </section>
+
+  <!-- ============ crew ============ -->
+  <section id="screen-crew" class="screen">
+    <div class="row" style="margin-bottom: var(--sp-4);">
+      <h2 class="grow" style="font-size:22px;">the crew</h2>
+      <span class="tiny dim">week of jul 13</span>
+    </div>
+    <div class="seg" role="tablist" aria-label="crew views">
+      <button id="seg-board" class="on" role="tab" aria-selected="true">leaderboard</button>
+      <button id="seg-feed" role="tab" aria-selected="false">feed</button>
+    </div>
+    <div id="view-board">
+      <div class="card" style="padding:4px;" id="lb-list"></div>
+      <p class="tiny dim" style="text-align:center;">resets monday 12:00 am &middot; loser buys coffee.</p>
+    </div>
+    <div id="view-feed" hidden></div>
+  </section>
+
+  <!-- ============ you ============ -->
+  <section id="screen-you" class="screen">
+    <div class="row">
+      <div class="avatar lg" aria-hidden="true"></div>
+      <div class="grow">
+        <h2 style="font-size:22px;">shaun d.</h2>
+        <p class="small dim">crew: the early birds (4)</p>
+      </div>
+    </div>
+    <div class="row mt3" style="flex-wrap:wrap; gap:8px;">
+      <span class="pill" id="you-week-pts">25 pts this week</span>
+      <span class="pill" id="you-alltime-pts">385 all-time</span>
+      <span class="pill" id="you-streak">streak 3</span>
+    </div>
+
+    <div class="row mt4" style="align-items:stretch; gap:8px;">
+      <div class="badge">
+        <div class="medal" aria-hidden="true"></div>
+        <b>first light</b>
+        <span class="tiny dim">rose on time, day one</span>
+      </div>
+      <div class="badge">
+        <div class="medal" aria-hidden="true"></div>
+        <b>3-peat</b>
+        <span class="tiny dim">3-day streak</span>
+      </div>
+      <div class="badge locked">
+        <div class="medal" aria-hidden="true"></div>
+        <b>week of steel</b>
+        <span class="tiny dim">7-day streak: 4 to go</span>
+      </div>
+    </div>
+
+    <div class="card mt4">
+      <p class="tiny dim" style="text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">sleep consistency</p>
+      <div class="row mt2">
+        <span class="score-num good">82</span>
+        <div>
+          <b>/ 100</b>
+          <p class="small good" style="font-weight:700;">solid</p>
+        </div>
+      </div>
+      <div class="mt3 small">
+        <div class="row" style="justify-content:space-between; padding:6px 0; border-top:1px solid var(--line);"><span class="dim">avg wake time</span><b>7:04 am</b></div>
+        <div class="row" style="justify-content:space-between; padding:6px 0; border-top:1px solid var(--line);"><span class="dim">bedtime goal 10:30 pm</span><b>hit 4 of last 7</b></div>
+        <div class="row" style="justify-content:space-between; padding:6px 0; border-top:1px solid var(--line);"><span class="dim">avg wind-down</span><b>38 min of doomscrolling</b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="tiny dim" style="text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">wake times, this week</p>
+      <div class="chart" aria-label="wake time chart, tuesday snoozed">
+        <div class="bar-wrap"><div class="bar" style="height:40%;"></div><span class="tiny">m</span></div>
+        <div class="bar-wrap"><div class="bar snoozed" style="height:78%;"></div><span class="tiny bad">t</span></div>
+        <div class="bar-wrap"><div class="bar" style="height:44%;"></div><span class="tiny">w</span></div>
+        <div class="bar-wrap"><div class="bar" style="height:42%;"></div><span class="tiny">t</span></div>
+        <div class="bar-wrap"><div class="bar" style="height:38%;"></div><span class="tiny">f</span></div>
+        <div class="bar-wrap"><div class="bar future" style="height:30%;"></div><span class="tiny">s</span></div>
+        <div class="bar-wrap"><div class="bar future" style="height:30%;"></div><span class="tiny">s</span></div>
+      </div>
+      <p class="tiny dim mt2">flatter is better. tuesday, we saw that.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="grow">
+          <b class="small">wind-down nudge</b>
+          <p class="tiny dim" id="winddown-caption">we'll bug you at 10:00 pm.</p>
+        </div>
+        <button class="toggle on" id="toggle-winddown" role="switch" aria-checked="true" aria-label="wind-down nudge"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ alarm overlay ============ -->
+  <div id="alarm-overlay" hidden>
+    <div id="alarm-ringing" style="width:100%;">
+      <div class="ring-glow">
+        <svg class="bell" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+      </div>
+      <div class="ring-time mt3">7:00 <span>am</span></div>
+      <p class="dim mt2" style="font-weight:700;">wake up, shaun d.</p>
+      <p class="small dim mt3" style="background:var(--surface); border:1px solid var(--line); border-radius:var(--r-pill); display:inline-block; padding:8px 16px;">your crew is watching. tiah is already up.</p>
+      <div class="mt4" style="display:flex; flex-direction:column; gap:12px; width:100%;">
+        <button class="btn btn-accent" id="btn-rise">
+          <div class="fill" aria-hidden="true"></div>
+          <span>i'm up</span>
+          <span class="sub">hold to prove it</span>
+        </button>
+        <button class="btn btn-danger" id="btn-snooze">
+          <span>snooze +9 min</span>
+          <span class="sub">&minus;20 pts &middot; auto-posts to crew</span>
+        </button>
+      </div>
+    </div>
+    <div id="alarm-result" style="width:100%;" hidden></div>
+  </div>
+
+  <!-- ============ tab bar ============ -->
+  <nav id="tabbar" hidden>
+    <button class="tab active" data-tab="home" aria-label="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/></svg>
+      <span>home</span><span class="dot"></span>
+    </button>
+    <button class="tab" data-tab="crew" aria-label="crew">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+      <span>crew</span><span class="dot"></span>
+    </button>
+    <button class="tab" data-tab="you" aria-label="you">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M5 21c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>
+      <span>you</span><span class="dot"></span>
+    </button>
+  </nav>
+
+</div>
+
+<script>
+/* ===================== 1. state ===================== */
+const initialState = {
+  players: [
+    { id: 'tiah',    name: 'tiah s.',    pts: 90,  streak: 12, sub: 'rose 5:58 am',    you: false },
+    { id: 'timothy', name: 'timothy s.', pts: 35,  streak: 3,  sub: 'rose 6:31 am',    you: false },
+    { id: 'shaun',   name: 'shaun d.',   pts: 25,  streak: 3,  sub: 'alarm pending',   you: true  },
+    { id: 'larry',   name: 'larry w.',   pts: -50, streak: 0,  sub: 'snoozed 6:52 am', you: false, tag: 'certified snoozer' },
+  ],
+  feed: [
+    { id: 'f1', headline: 'larry w. hit snooze',        when: 'today 6:52 am',     delta: -20, note: 'streak: gone. third strike this week.', reactions: { brutal: 4, lol: 2, respect: 0, zzz: 1 }, mine: {} },
+    { id: 'f2', headline: 'timothy s. rose on time',    when: 'today 6:31 am',     delta: 15,  note: 'streak: 3. bonus unlocked.',            reactions: { brutal: 0, lol: 0, respect: 3, zzz: 0 }, mine: {} },
+    { id: 'f3', headline: 'tiah s. rose at 5:58 am',    when: 'today',             delta: 15,  note: '12 days straight. inhuman.',            reactions: { brutal: 1, lol: 0, respect: 7, zzz: 0 }, mine: {} },
+    { id: 'f4', headline: 'shaun d. (you) rose on time', when: 'yesterday 7:02 am', delta: 15,  note: 'streak hit 3. bonus starts now.',       reactions: { brutal: 0, lol: 0, respect: 2, zzz: 0 }, mine: {} },
+    { id: 'f5', headline: 'larry w. snoozed. twice.',   when: 'thursday',          delta: -40, note: 'the alarm never stood a chance.',       reactions: { brutal: 6, lol: 5, respect: 0, zzz: 2 }, mine: {} },
+    { id: 'f6', headline: 'timothy s. hit snooze',      when: 'wednesday',         delta: -20, note: 'we all saw it.',                        reactions: { brutal: 1, lol: 1, respect: 0, zzz: 2 }, mine: {} },
+  ],
+  alarm: { resolved: false, outcome: null },
+  windDown: true,
+};
+let S = structuredClone(initialState);
+let freshFeedId = null;
+
+/* ===================== 2. helpers ===================== */
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const fmtPts = (n) => (n < 0 ? '−' + Math.abs(n) : n) + ' pts';
+const fmtDelta = (n) => (n < 0 ? '−' + Math.abs(n) : '+' + n) + ' pts';
+const sortedPlayers = () => [...S.players].sort((a, b) => b.pts - a.pts);
+const me = () => S.players.find((p) => p.you);
+const myRank = () => sortedPlayers().findIndex((p) => p.you) + 1;
+
+/* ===================== 3. renderers ===================== */
+function renderLeaderboard() {
+  $('lb-list').innerHTML = sortedPlayers().map((p, i) => `
+    <div class="lb-row${p.you ? ' you' : ''}">
+      <span class="rank${i === 0 ? ' top' : ''}">#${i + 1}</span>
+      <div class="avatar" aria-hidden="true"></div>
+      <div class="grow">
+        <b class="small">${esc(p.name)}${p.you ? ' (you)' : ''}${p.tag ? `<span class="tag">${esc(p.tag)}</span>` : ''}</b>
+        <p class="tiny dim">${p.streak > 0 ? p.streak + '-day streak' : 'streak: 0'} &middot; ${esc(p.sub)}</p>
+      </div>
+      <span class="lb-pts${p.pts < 0 ? ' bad' : ''}">${fmtPts(p.pts)}</span>
+    </div>`).join('');
+}
+
+function renderFeed() {
+  $('view-feed').innerHTML = S.feed.map((f) => `
+    <div class="card feed-item ${f.delta < 0 ? 'down' : 'up'}${f.id === freshFeedId ? ' fresh' : ''}">
+      <div class="row">
+        <div class="avatar" aria-hidden="true"></div>
+        <div class="grow">
+          <b class="small">${esc(f.headline)}</b>
+          <p class="tiny dim">${esc(f.when)}</p>
+        </div>
+        <span class="delta ${f.delta < 0 ? 'down' : 'up'}">${fmtDelta(f.delta)}</span>
+      </div>
+      <p class="small dim mt2">${esc(f.note)}</p>
+      <div class="reactions" data-feed="${f.id}">
+        ${['brutal', 'lol', 'respect', 'zzz'].map((r) => `
+          <button class="chip${f.mine[r] ? ' on' : ''}" data-react="${r}">${r} ${f.reactions[r] + (f.mine[r] ? 1 : 0)}</button>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function renderHome() {
+  const m = me();
+  $('streak-chip-text').textContent = 'streak: ' + m.streak + (m.streak === 1 ? ' day' : ' days');
+  const top = S.feed[0];
+  $('ticker-text').innerHTML = esc(top.headline) + '. ' + fmtDelta(top.delta) + '.';
+  if (S.alarm.resolved) {
+    $('btn-demo').disabled = true;
+    $('btn-demo-label').textContent = 'alarm handled. reset demo to replay';
+    $('alarm-sub').textContent = S.alarm.outcome === 'rise' ? 'handled at 7:00 am. see you tomorrow.' : 'snoozed. the crew knows.';
+  } else {
+    $('btn-demo').disabled = false;
+    $('btn-demo-label').textContent = 'test the alarm (demo)';
+    $('alarm-sub').textContent = 'rings in 5 min';
+  }
+}
+
+function renderYou() {
+  const m = me();
+  $('you-week-pts').textContent = m.pts + ' pts this week';
+  $('you-alltime-pts').textContent = (360 + m.pts) + ' all-time';
+  $('you-streak').textContent = 'streak ' + m.streak;
+}
+
+function renderAll() {
+  renderLeaderboard();
+  renderFeed();
+  renderHome();
+  renderYou();
+}
+
+/* ===================== 4. nav ===================== */
+function showTab(name) {
+  ['home', 'crew', 'you'].forEach((t) => {
+    $('screen-' + t).classList.toggle('active', t === name);
+  });
+  document.querySelectorAll('#tabbar .tab').forEach((b) => {
+    b.classList.toggle('active', b.dataset.tab === name);
+  });
+}
+
+function showSeg(which) {
+  $('seg-board').classList.toggle('on', which === 'board');
+  $('seg-feed').classList.toggle('on', which === 'feed');
+  $('seg-board').setAttribute('aria-selected', which === 'board');
+  $('seg-feed').setAttribute('aria-selected', which === 'feed');
+  $('view-board').hidden = which !== 'board';
+  $('view-feed').hidden = which !== 'feed';
+}
+
+function dismissSplash() {
+  const splash = $('screen-splash');
+  splash.classList.add('dismissed');
+  setTimeout(() => {
+    splash.classList.remove('active');
+    $('tabbar').hidden = false;
+    showTab('home');
+  }, 360);
+}
+
+/* ===================== 5. alarm flow ===================== */
+function openAlarm() {
+  $('alarm-ringing').hidden = false;
+  $('alarm-result').hidden = true;
+  $('alarm-overlay').hidden = false;
+}
+
+function closeAlarm(target, seg) {
+  $('alarm-overlay').hidden = true;
+  if (target) showTab(target);
+  if (seg) showSeg(seg);
+}
+
+function applyOutcome(kind) {
+  const m = me();
+  if (kind === 'rise') {
+    m.pts += 15;
+    m.streak = 4;
+    m.sub = 'rose 7:00 am';
+    freshFeedId = 'demo-rise';
+    S.feed.unshift({
+      id: 'demo-rise', headline: 'shaun d. (you) rose on time', when: 'just now', delta: 15,
+      note: 'streak: 4. bonus banked.', reactions: { brutal: 0, lol: 0, respect: 0, zzz: 0 }, mine: {},
+    });
+  } else {
+    m.pts -= 20;
+    m.streak = 0;
+    m.sub = 'snoozed 7:00 am';
+    freshFeedId = 'demo-snooze';
+    S.feed.unshift({
+      id: 'demo-snooze', headline: 'shaun d. (you) hit snooze', when: 'just now', delta: -20,
+      note: 'streak: broken (was 3). the crew has been notified.', reactions: { brutal: 0, lol: 0, respect: 0, zzz: 0 }, mine: {},
+    });
+  }
+  S.alarm.resolved = true;
+  S.alarm.outcome = kind;
+  renderAll();
+  showResult(kind);
+}
+
+function showResult(kind) {
+  const rank = myRank();
+  const html = kind === 'rise' ? `
+    <div class="result-delta good">+15 pts</div>
+    <h2 class="mt2" style="font-size:24px;">up and unstoppable.</h2>
+    <p class="dim mt2" style="font-weight:700;">streak: 4 days</p>
+    <div class="card mt4" style="border-color: rgba(255,176,58,0.5); text-align:center;">
+      <b class="small">you just passed timothy s. you're #${rank} this week.</b>
+    </div>
+    <div class="broadcast mt3">
+      <p class="tiny dim" style="text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">auto-posted to your crew</p>
+      <div class="row mt2">
+        <div class="avatar sm" aria-hidden="true"></div>
+        <p class="small grow">shaun d. rose at 7:00 am. +15 pts. streak: 4.</p>
+      </div>
+      <p class="tiny dim mt2">sent to tiah s., larry w., timothy s.</p>
+    </div>
+    <div class="mt4" style="display:flex; flex-direction:column; gap:12px;">
+      <button class="btn btn-accent" data-close="crew" data-seg="board"><span>see leaderboard</span></button>
+      <button class="btn" data-close="home"><span>done</span></button>
+    </div>` : `
+    <div class="result-delta bad">&minus;20 pts</div>
+    <h2 class="mt2" style="font-size:24px;">snooze u lose.</h2>
+    <p class="dim mt2" style="font-weight:700;">streak: broken (was 3)</p>
+    <div class="broadcast mt4" style="border-color: rgba(255,92,108,0.5);">
+      <p class="tiny bad" style="text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">auto-posted to your crew</p>
+      <div class="row mt2">
+        <div class="avatar sm" aria-hidden="true"></div>
+        <p class="small grow">shaun d. hit snooze at 7:00 am. &minus;20 pts. the crew has been notified.</p>
+      </div>
+      <p class="tiny dim mt2">sent to tiah s., larry w., timothy s. no take-backs.</p>
+    </div>
+    <div class="mt4" style="display:flex; flex-direction:column; gap:12px;">
+      <button class="btn btn-danger" data-close="crew" data-seg="feed"><span>face the feed</span></button>
+      <button class="btn" data-close="home"><span>hide</span></button>
+    </div>`;
+  $('alarm-result').innerHTML = html;
+  $('alarm-ringing').hidden = true;
+  $('alarm-result').hidden = false;
+}
+
+/* hold-to-rise: 1.2s press, releasing early cancels */
+let riseTimer = null;
+function riseStart(e) {
+  e.preventDefault();
+  $('btn-rise').querySelector('.fill').classList.add('filling');
+  riseTimer = setTimeout(() => { riseReset(); applyOutcome('rise'); }, 1200);
+}
+function riseCancel() {
+  if (riseTimer) { clearTimeout(riseTimer); riseTimer = null; }
+  riseReset();
+}
+function riseReset() {
+  const fill = $('btn-rise').querySelector('.fill');
+  fill.classList.remove('filling');
+  if (riseTimer === null) fill.style.width = '';
+}
+
+/* ===================== 6. reset ===================== */
+function resetDemo() {
+  S = structuredClone(initialState);
+  freshFeedId = null;
+  renderAll();
+}
+
+/* ===================== 7. init / wiring ===================== */
+$('btn-start').addEventListener('click', dismissSplash);
+$('btn-demo').addEventListener('click', openAlarm);
+$('btn-reset').addEventListener('click', resetDemo);
+$('btn-ticker').addEventListener('click', () => { showTab('crew'); showSeg('feed'); });
+$('seg-board').addEventListener('click', () => showSeg('board'));
+$('seg-feed').addEventListener('click', () => showSeg('feed'));
+
+document.querySelectorAll('#tabbar .tab').forEach((b) => {
+  b.addEventListener('click', () => showTab(b.dataset.tab));
+});
+
+$('btn-snooze').addEventListener('click', () => applyOutcome('snooze'));
+const riseBtn = $('btn-rise');
+riseBtn.addEventListener('pointerdown', riseStart);
+riseBtn.addEventListener('pointerup', riseCancel);
+riseBtn.addEventListener('pointerleave', riseCancel);
+riseBtn.addEventListener('pointercancel', riseCancel);
+
+$('alarm-result').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-close]');
+  if (btn) closeAlarm(btn.dataset.close, btn.dataset.seg);
+});
+
+$('view-feed').addEventListener('click', (e) => {
+  const chip = e.target.closest('[data-react]');
+  if (!chip) return;
+  const item = S.feed.find((f) => f.id === chip.closest('[data-feed]').dataset.feed);
+  item.mine[chip.dataset.react] = !item.mine[chip.dataset.react];
+  renderFeed();
+});
+
+$('toggle-winddown').addEventListener('click', () => {
+  S.windDown = !S.windDown;
+  const t = $('toggle-winddown');
+  t.classList.toggle('on', S.windDown);
+  t.setAttribute('aria-checked', S.windDown);
+  $('winddown-caption').textContent = S.windDown ? "we'll bug you at 10:00 pm." : 'okay, night owl.';
+});
+
+renderAll();
+</script>
+</body>
+</html>
