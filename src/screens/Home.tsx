@@ -30,35 +30,32 @@ export function Home() {
       </Micro>
       <div style={{ fontSize: 27, letterSpacing: '-0.3px', marginTop: 6 }}>{greeting(now.getHours())}, shaun d.</div>
 
-      <button
-        onClick={() => go('alarmEditor')}
-        style={{ background: 'var(--cream)', borderRadius: 20, padding: '18px 20px 16px', marginTop: 18, color: 'var(--ink)', width: '100%' }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Micro color="var(--olive)">NEXT ALARM</Micro>
-          <div
-            className="mono"
-            style={{
-              fontSize: 10,
-              letterSpacing: '1.2px',
-              background: state.alarm.armed ? 'var(--olive)' : 'rgba(38,32,25,0.18)',
-              color: state.alarm.armed ? 'var(--cream)' : 'var(--ink-55)',
-              borderRadius: 999,
-              padding: '4px 10px',
-            }}
-          >
-            {state.alarm.armed ? 'ARMED' : 'OFF'}
+      {/* not a <button>: the toggle inside would nest buttons (invalid HTML, misroutes taps) */}
+      <div style={{ background: 'var(--cream)', borderRadius: 20, padding: '18px 20px 16px', marginTop: 18, color: 'var(--ink)' }}>
+        <button onClick={() => go('alarmEditor')} aria-label="edit alarm" style={{ display: 'block', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Micro color="var(--olive)">NEXT ALARM</Micro>
+            <div
+              className="mono"
+              style={{
+                fontSize: 10,
+                letterSpacing: '1.2px',
+                background: state.alarm.armed ? 'var(--olive)' : 'rgba(38,32,25,0.18)',
+                color: state.alarm.armed ? 'var(--cream)' : 'var(--ink-55)',
+                borderRadius: 999,
+                padding: '4px 10px',
+              }}
+            >
+              {state.alarm.armed ? 'ARMED' : 'OFF'}
+            </div>
           </div>
-        </div>
-        <div style={{ fontSize: 54, lineHeight: 1.05, letterSpacing: '-1px', marginTop: 8 }}>{state.alarm.time}</div>
-        <div style={{ fontSize: 14, color: 'var(--ink-65)', marginTop: 4 }}>
-          first ring in {ringsIn(state.alarm.time, now, state.alarm.repeat)}
-        </div>
+          <div style={{ fontSize: 54, lineHeight: 1.05, letterSpacing: '-1px', marginTop: 8 }}>{state.alarm.time}</div>
+          <div style={{ fontSize: 14, color: 'var(--ink-65)', marginTop: 4 }}>
+            first ring in {ringsIn(state.alarm.time, now, state.alarm.repeat)}
+          </div>
+        </button>
         <div style={{ height: 1, background: 'rgba(38,32,25,0.12)', margin: '14px 0 12px' }} />
-        <div
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontSize: 13.5 }}>no-snooze mode</div>
           <Toggle
             on={state.alarm.noSnooze}
@@ -67,7 +64,7 @@ export function Home() {
             onToggle={() => update((s) => ({ ...s, alarm: { ...s.alarm, noSnooze: !s.alarm.noSnooze } }))}
           />
         </div>
-      </button>
+      </div>
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
         <div style={{ flex: 1, background: 'var(--yellow)', borderRadius: 18, padding: '14px 16px', color: 'var(--ink)' }}>

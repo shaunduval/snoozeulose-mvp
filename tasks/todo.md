@@ -14,17 +14,23 @@ Source of truth: claude.ai/design project `e8805c54` → `snoozeulose.dc.html` (
 ## Todo
 
 - [x] Read full design doc (16 screens + props script)
-- [ ] git init, scaffold on main, feature branch
-- [ ] Vite/TS/PWA scaffold + design tokens (styles.css)
-- [ ] Shared components: Phone, Micro, Pill, Toggle, Avatar, TabBar, PrimaryButton
-- [ ] Core logic: time utils, game transitions, wake-check generator, klaxon sound
-- [ ] Store: context + localStorage persistence
-- [ ] Screens 01-16 wired: splash → squad up → alarm editor → home; tabs alarm/squad/you; ring → wake check → victory; snooze → aftermath loop; settings screens off the You tab
-- [ ] Vitest: time utils, scoring/streak transitions, wake check
-- [ ] bun install, typecheck, build, tests green
-- [ ] Browser QA: walk every screen, screenshot key flows
-- [ ] Review section below
+- [x] git init, scaffold on main, feature branch
+- [x] Vite/TS/PWA scaffold + design tokens (styles.css)
+- [x] Shared components: Phone, Micro, Pill, Toggle, Avatar, TabBar, PrimaryButton
+- [x] Core logic: time utils, game transitions, wake-check generator, klaxon sound
+- [x] Store: context + localStorage persistence
+- [x] Screens 01-16 wired: splash → squad up → alarm editor → home; tabs alarm/squad/you; ring → wake check → victory; snooze → aftermath loop; settings screens off the You tab
+- [x] Vitest: time utils, scoring/streak transitions, wake check (31 tests)
+- [x] bun install, typecheck, build, tests green
+- [x] Browser QA: walked every screen, verified ring → wake check → victory end to end
+- [x] Review section below
 
 ## Review
 
-(pending)
+- All 16 design screens implemented and verified in the browser at mobile size. Geomini loads from Google Fonts; palette and copy match the design doc.
+- The game is real, not a mockup: the alarm fires on schedule, the klaxon is synthesized (no audio assets), wake check is playable, scoring/streaks update the board and feed, state persists in localStorage.
+- Squad members are simulated client-side per the design script; their statuses derive from the clock (timothy flips to "finally up" after 8 am).
+- Found and fixed during QA: the home alarm card was a button wrapping the no-snooze toggle button (invalid nested buttons, misrouted taps). Restructured so the card is a div and only the alarm area is a button.
+- QA note: the embedded browser replays prior clicks after each page load, which ghost-walked the morning flow during testing (streak inflated to 8 in the demo state). App logic is unaffected; unit tests cover the transitions. Clear localStorage to reset the demo.
+- Deviations from the doc, all additive: a settings list on the You tab so screens 10-12 and 15 are reachable, snooze hidden when no-snooze mode is on, victory screen has -5/streak-lost variants for snoozed mornings.
+- Not built (needs a backend): real squads/accounts, actual social posting, web push. The PWA is installable with a minimal service worker.
