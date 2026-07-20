@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useGame } from './store';
-import type { Screen } from './store';
-import { startRing } from './lib/game';
-import { nextOccurrence } from './lib/time';
+import type { GameState, Screen } from './store';
+import { assessAlarm, missMorning, missedPost, resetMorning, startRing, MISS_GRACE_MINUTES } from './lib/game';
+import { dayKey, fmtTimeOfDay, nextOccurrence } from './lib/time';
 import { startKlaxon, stopKlaxon } from './lib/sound';
 import { Splash } from './screens/Splash';
 import { SquadUp } from './screens/SquadUp';
@@ -50,27 +50,42 @@ export default function App() {
       : null;
   }, [state.alarm.time, state.alarm.armed, state.alarm.repeat, idle]);
 
-  // QA helper: ?ring=1 fires the alarm immediately
+  // On open: fire the QA ring, ring late if inside the grace window, or
+  // book the miss for an alarm that came and went while the app was closed.
   useEffect(() => {
     if (new URLSearchParams(location.search).get('ring')) {
       update((s) => ({ ...s, onboarded: true, morning: startRing(s.morning, Date.now()) }));
       go('firstRing');
+      return;
+    }
+    const now = new Date();
+    const verdict = assessAlarm({ ...stateSnapshotForAssess(state), now });
+    if (verdict.kind === 'ring') {
+      update((s) => ({ ...s, morning: startRing(s.morning, Date.now()) }));
+      go('firstRing');
+    } else if (verdict.kind === 'missed') {
+      const postedAt = new Date(verdict.occurredAt + MISS_GRACE_MINUTES * 60_000);
+      update((s) => applyMiss(s, new Date(verdict.occurredAt), postedAt));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // the engine: fire on schedule, and re-fire when a snooze runs out
+  // the engine: fire on schedule, re-fire when a snooze runs out, and
+  // book the miss when nobody dismisses inside the grace window
   useEffect(() => {
     const id = setInterval(() => {
       const now = Date.now();
-      if (state.morning.phase === 'idle' && fireAtRef.current !== null && now >= fireAtRef.current) {
+      const { phase, nextRingAt, ringStartedAt } = state.morning;
+      const graceOver =
+        ringStartedAt !== null && now - ringStartedAt > MISS_GRACE_MINUTES * 60_000;
+      if (phase === 'idle' && fireAtRef.current !== null && now >= fireAtRef.current) {
         update((s) => ({ ...s, morning: startRing(s.morning, now) }));
         go('firstRing');
-      } else if (
-        state.morning.phase === 'aftermath' &&
-        state.morning.nextRingAt !== null &&
-        now >= state.morning.nextRingAt
-      ) {
+      } else if ((phase === 'ringing' || phase === 'aftermath') && graceOver) {
+        const at = new Date(now);
+        update((s) => applyMiss(s, at, at));
+        go('home');
+      } else if (phase === 'aftermath' && nextRingAt !== null && now >= nextRingAt) {
         update((s) => ({ ...s, morning: startRing(s.morning, now) }));
         go('firstRing');
       }
@@ -94,4 +109,32 @@ export default function App() {
 
   const Current = SCREENS[screen] ?? Home;
   return <Current />;
+}
+
+function stateSnapshotForAssess(s: GameState) {
+  return {
+    time: s.alarm.time,
+    repeat: s.alarm.repeat,
+    armed: s.alarm.armed,
+    armedAt: s.alarm.armedAt,
+    lastResolvedDay: s.lastResolvedDay,
+  };
+}
+
+/** Book a slept-through morning: −15, streak dead, and the squad hears about it. */
+function applyMiss(s: GameState, occurred: Date, postedAt: Date): GameState {
+  // idempotent: strict-mode double effects and repeat ticks must not double-charge
+  if (s.lastResolvedDay === dayKey(occurred)) return s;
+  const scored = missMorning({ points: s.points, streak: s.streak, bestStreak: s.bestStreak });
+  const post = missedPost();
+  return {
+    ...s,
+    ...scored,
+    morning: resetMorning(),
+    lastResolvedDay: dayKey(occurred),
+    myPosts: [
+      ...s.myPosts,
+      { id: `me-${postedAt.getTime()}`, text: post.text, badge: post.badge, tone: 'blue' as const, time: fmtTimeOfDay(postedAt) },
+    ],
+  };
 }

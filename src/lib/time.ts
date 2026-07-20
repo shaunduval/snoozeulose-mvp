@@ -46,6 +46,28 @@ export function nextOccurrence(t: string, from: Date, repeat?: boolean[]): Date 
   return next;
 }
 
+/** Most recent fire time at or before `from`, honoring repeat days (index 0 = monday). */
+export function prevOccurrence(t: string, from: Date, repeat?: boolean[]): Date | null {
+  const clock = parseAlarm(t);
+  if (!clock) return null;
+  const prev = new Date(from);
+  prev.setHours(clock.h, clock.m, 0, 0);
+  if (prev.getTime() > from.getTime()) prev.setDate(prev.getDate() - 1);
+  if (repeat && repeat.some(Boolean)) {
+    for (let i = 0; i < 7; i++) {
+      const mondayFirst = (prev.getDay() + 6) % 7;
+      if (repeat[mondayFirst]) return prev;
+      prev.setDate(prev.getDate() - 1);
+    }
+  }
+  return prev;
+}
+
+/** Local calendar day key, e.g. "2026-07-20". */
+export function dayKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export function ringsIn(t: string, from = new Date(), repeat?: boolean[]): string {
   const next = nextOccurrence(t, from, repeat);
   if (!next) return 'a few hours';

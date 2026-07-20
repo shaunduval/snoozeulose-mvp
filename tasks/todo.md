@@ -1,5 +1,17 @@
 # snoozeulose MVP — build plan
 
+## Iteration 2 — close the free-ride holes (2026-07-20)
+
+Decisions: skip the snoozeulose.app custom domain. Client-side only, no backend yet.
+
+- [x] Missed-ring outcome: no dismiss within 45 min of first ring → −15, streak resets, auto-posts "NO RESPONSE" to the squad. Works live (tab open) and retroactively (detected on next app open via lastResolvedDay tracking).
+- [x] Catch-up ring: open the app within the 45-min window of an unhandled alarm → it rings late instead of silently skipping to tomorrow.
+- [x] Honor sharing toggles: first-ring wins post only when enabled (snoozes stay locked on), streak milestone post every 5 days.
+- [x] Wind-down pays: +2 per checked hygiene item when starting sleep mode, once per night.
+- [x] Tests for prevOccurrence, assessAlarm, missMorning (44 total); build + browser QA (verified cold miss with idempotency guard, late ring, hygiene award); redeployed.
+
+Iteration 2 review: the miss initially double-charged (−30) because strict mode fires mount effects twice; fixed by making applyMiss idempotent on lastResolvedDay. Occurrences before armedAt never count, so setting a new alarm can't retro-post a miss.
+
 Source of truth: claude.ai/design project `e8805c54` → `snoozeulose.dc.html` (16 screens).
 
 ## Decisions

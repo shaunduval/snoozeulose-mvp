@@ -1,6 +1,6 @@
 import { CheckIcon, FooterNote, Micro, Phone, PrimaryButton, Spacer } from '../components/ui';
 import { useNow } from '../hooks';
-import { lightsOut, ringsIn } from '../lib/time';
+import { dayKey, lightsOut, ringsIn } from '../lib/time';
 import { useGame } from '../store';
 
 const CHECKLIST = [
@@ -24,7 +24,17 @@ export function WindDown() {
     }));
 
   const startSleepMode = () => {
-    update((s) => ({ ...s, sleepMode: true, alarm: { ...s.alarm, armed: true } }));
+    const today = dayKey(now);
+    update((s) => {
+      const earned = s.hygieneAwardedDay === today ? 0 : s.checklistDone.length * 2;
+      return {
+        ...s,
+        sleepMode: true,
+        points: s.points + earned,
+        hygieneAwardedDay: today,
+        alarm: { ...s.alarm, armed: true },
+      };
+    });
     go('home');
   };
 

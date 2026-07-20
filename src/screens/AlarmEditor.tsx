@@ -33,7 +33,7 @@ export function AlarmEditor() {
     }));
 
   const save = () => {
-    update((s) => ({ ...s, onboarded: true, alarm: { ...s.alarm, armed: true } }));
+    update((s) => ({ ...s, onboarded: true, alarm: { ...s.alarm, armed: true, armedAt: Date.now() } }));
     go('home');
   };
 

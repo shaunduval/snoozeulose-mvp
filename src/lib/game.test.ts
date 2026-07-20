@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  assessAlarm,
   beginWakeCheck,
   idleMorning,
+  missedPost,
+  missMorning,
   resumeRing,
   snooze,
   snoozePost,
@@ -81,7 +84,71 @@ describe('winMorning', () => {
   });
 });
 
+describe('missMorning', () => {
+  it('costs 15 points and kills the streak, keeping bestStreak', () => {
+    const after = missMorning(me);
+    expect(after.points).toBe(53);
+    expect(after.streak).toBe(0);
+    expect(after.bestStreak).toBe(4);
+  });
+});
+
+describe('assessAlarm', () => {
+  // weekday 6:30 alarm, armed friday evening
+  const weekdays = [true, true, true, true, true, false, false];
+  const armedAt = new Date(2026, 6, 17, 20, 0).getTime(); // fri 8 pm
+  const base = { time: '6:30 am', repeat: weekdays, armed: true, armedAt, lastResolvedDay: null };
+
+  it('does nothing while disarmed', () => {
+    const now = new Date(2026, 6, 20, 9, 0);
+    expect(assessAlarm({ ...base, armed: false, now })).toEqual({ kind: 'none' });
+  });
+
+  it('ignores occurrences from before the alarm was armed', () => {
+    // armed monday 7 am, checked monday 9 am: monday 6:30 predates arming
+    const now = new Date(2026, 6, 20, 9, 0);
+    const lateArm = new Date(2026, 6, 20, 7, 0).getTime();
+    expect(assessAlarm({ ...base, armedAt: lateArm, now })).toEqual({ kind: 'none' });
+  });
+
+  it('rings late inside the 45-minute grace window', () => {
+    const now = new Date(2026, 6, 20, 6, 50); // 20 min after monday's 6:30
+    expect(assessAlarm({ ...base, now })).toEqual({ kind: 'ring' });
+  });
+
+  it('books a miss once the grace window closes', () => {
+    const now = new Date(2026, 6, 20, 9, 0);
+    const verdict = assessAlarm({ ...base, now });
+    expect(verdict.kind).toBe('missed');
+    if (verdict.kind === 'missed') {
+      expect(new Date(verdict.occurredAt).getHours()).toBe(6);
+      expect(new Date(verdict.occurredAt).getDate()).toBe(20);
+    }
+  });
+
+  it('stays quiet when the morning was already resolved', () => {
+    const now = new Date(2026, 6, 20, 9, 0);
+    expect(assessAlarm({ ...base, lastResolvedDay: '2026-07-20', now })).toEqual({ kind: 'none' });
+  });
+
+  it('reports a stale weekend-skipped miss from days ago', () => {
+    // armed thursday night, friday was slept through, opened sunday
+    const now = new Date(2026, 6, 19, 15, 0);
+    const thuNight = new Date(2026, 6, 16, 22, 0).getTime();
+    const verdict = assessAlarm({ ...base, armedAt: thuNight, lastResolvedDay: '2026-07-16', now });
+    expect(verdict.kind).toBe('missed');
+    if (verdict.kind === 'missed') expect(new Date(verdict.occurredAt).getDate()).toBe(17);
+  });
+});
+
 describe('posts', () => {
+  it('posts the no-response status with the miss penalty', () => {
+    expect(missedPost()).toEqual({
+      text: 'no response. slept through it. someone go knock.',
+      badge: '−15 · NO RESPONSE',
+    });
+  });
+
   it('writes the snooze status with the running count', () => {
     expect(snoozePost(2)).toEqual({ text: 'snoozing… ×2', badge: '−5 · STILL IN BED' });
   });

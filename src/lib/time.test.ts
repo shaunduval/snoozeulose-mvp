@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  dayKey,
   fmtCountdown,
   formatClock,
   lightsOut,
   nextOccurrence,
   parseAlarm,
+  prevOccurrence,
   ringsIn,
   weekNumber,
 } from './time';
@@ -71,6 +73,41 @@ describe('nextOccurrence', () => {
 
   it('returns null for an unparseable time', () => {
     expect(nextOccurrence('nope', tueNight)).toBeNull();
+  });
+});
+
+describe('prevOccurrence', () => {
+  it('returns today when the time already passed', () => {
+    // Mon Jul 20 2026, 8:00 am
+    const monMorning = new Date(2026, 6, 20, 8, 0);
+    const prev = prevOccurrence('6:30 am', monMorning)!;
+    expect(prev.getDate()).toBe(20);
+    expect(prev.getHours()).toBe(6);
+  });
+
+  it('rolls back to yesterday when the time is still ahead today', () => {
+    const monEarly = new Date(2026, 6, 20, 5, 0);
+    expect(prevOccurrence('6:30 am', monEarly)!.getDate()).toBe(19);
+  });
+
+  it('walks back to the last enabled repeat day', () => {
+    // weekday alarm, checked on sunday afternoon → friday's occurrence
+    const sunAfternoon = new Date(2026, 6, 19, 15, 0);
+    const weekdays = [true, true, true, true, true, false, false];
+    const prev = prevOccurrence('6:30 am', sunAfternoon, weekdays)!;
+    expect(prev.getDay()).toBe(5); // friday
+    expect(prev.getDate()).toBe(17);
+  });
+
+  it('returns null for an unparseable time', () => {
+    expect(prevOccurrence('nope', new Date())).toBeNull();
+  });
+});
+
+describe('dayKey', () => {
+  it('formats a local calendar day with zero padding', () => {
+    expect(dayKey(new Date(2026, 6, 20, 23, 59))).toBe('2026-07-20');
+    expect(dayKey(new Date(2026, 0, 5, 0, 0))).toBe('2026-01-05');
   });
 });
 

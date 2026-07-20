@@ -5,7 +5,7 @@ import { snoozePost, victoryPost, SNOOZE_PENALTY } from '../lib/game';
 import * as game from '../lib/game';
 import { answerFor, makeProblems, WAKE_CHECK_STALL_SECONDS } from '../lib/wakeCheck';
 import type { Problem } from '../lib/wakeCheck';
-import { fmtCountdown, fmtShortDate, fmtTimeOfDay } from '../lib/time';
+import { dayKey, fmtCountdown, fmtShortDate, fmtTimeOfDay } from '../lib/time';
 import { useGame } from '../store';
 import type { MyPost } from '../store';
 
@@ -124,13 +124,16 @@ export function WakeCheck() {
       if (round + 1 >= rounds) {
         update((s) => {
           const { morning, me } = game.winMorning(s.morning, meOf(s), Date.now());
-          const post = victoryPost(s.morning.snoozeCount, me.streak);
-          return {
-            ...s,
-            ...me,
-            morning,
-            myPosts: [...s.myPosts, newPost(post.text, post.badge, s.morning.snoozeCount === 0 ? 'olive' : 'rust')],
-          };
+          const posts = [...s.myPosts];
+          // snooze-tinged posts are locked on (it's the game); clean wins respect the toggle
+          if (s.morning.snoozeCount > 0 || s.sharing.firstRingWins) {
+            const post = victoryPost(s.morning.snoozeCount, me.streak);
+            posts.push(newPost(post.text, post.badge, s.morning.snoozeCount === 0 ? 'olive' : 'rust'));
+          }
+          if (s.sharing.streakMilestones && me.streak > 0 && me.streak % 5 === 0) {
+            posts.push(newPost(`day ${me.streak}. that's a milestone.`, `STREAK ×${me.streak}`, 'yellow'));
+          }
+          return { ...s, ...me, morning, lastResolvedDay: dayKey(new Date()), myPosts: posts };
         });
         go('victory');
       } else {
@@ -313,6 +316,8 @@ export function Victory() {
   const now = useNow();
   const firstRing = state.morning.snoozeCount === 0;
   const dismissedIn = state.morning.dismissedInMs;
+  // the wake-up status itself, skipping any milestone post stacked after it
+  const wakePost = [...state.myPosts].reverse().find((p) => !p.badge.startsWith('STREAK'));
 
   const done = () => {
     update((s) => ({ ...s, morning: game.resetMorning(), sleepMode: false }));
@@ -365,10 +370,10 @@ export function Victory() {
           </div>
         </div>
         <div style={{ fontSize: 15, lineHeight: 1.45, marginTop: 10 }}>
-          {state.myPosts.length > 0 ? state.myPosts[state.myPosts.length - 1].text : 'up. good morning.'}
+          {wakePost ? wakePost.text : 'up. good morning.'}
         </div>
         <Pill tone={firstRing ? 'olive' : 'rust'} style={{ marginTop: 10 }}>
-          {state.myPosts.length > 0 ? state.myPosts[state.myPosts.length - 1].badge : '+10 · FIRST RING'}
+          {wakePost ? wakePost.badge : '+10 · FIRST RING'}
         </Pill>
       </div>
 

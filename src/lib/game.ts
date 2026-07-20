@@ -1,6 +1,10 @@
+import { dayKey, prevOccurrence } from './time';
+
 export const SNOOZE_PENALTY = 5;
 export const FIRST_RING_BONUS = 10;
 export const SNOOZE_MINUTES = 9;
+export const MISS_PENALTY = 15;
+export const MISS_GRACE_MINUTES = 45;
 
 export type MorningPhase = 'idle' | 'ringing' | 'aftermath' | 'wakecheck' | 'victory';
 
@@ -88,6 +92,49 @@ export function winMorning(
 
 export function resetMorning(): MorningState {
   return { ...idleMorning };
+}
+
+/**
+ * Never dismissed within the grace window: the harshest outcome.
+ * Sleeping through costs more than any snooze and the streak dies.
+ */
+export function missMorning(me: MeScore): MeScore {
+  return { ...me, points: me.points - MISS_PENALTY, streak: 0 };
+}
+
+export type AlarmCatchUp =
+  | { kind: 'none' }
+  | { kind: 'ring' }
+  | { kind: 'missed'; occurredAt: number };
+
+/**
+ * On app open, decide what the last scheduled ring demands: nothing
+ * (handled, disarmed, or predates arming), a late ring (still inside the
+ * grace window), or a retroactive miss.
+ */
+export function assessAlarm(opts: {
+  time: string;
+  repeat: boolean[];
+  armed: boolean;
+  armedAt: number;
+  lastResolvedDay: string | null;
+  now: Date;
+}): AlarmCatchUp {
+  if (!opts.armed) return { kind: 'none' };
+  const prev = prevOccurrence(opts.time, opts.now, opts.repeat);
+  if (!prev || prev.getTime() <= opts.armedAt) return { kind: 'none' };
+  if (dayKey(prev) === opts.lastResolvedDay) return { kind: 'none' };
+  if (opts.now.getTime() - prev.getTime() > MISS_GRACE_MINUTES * 60_000) {
+    return { kind: 'missed', occurredAt: prev.getTime() };
+  }
+  return { kind: 'ring' };
+}
+
+export function missedPost(): { text: string; badge: string } {
+  return {
+    text: 'no response. slept through it. someone go knock.',
+    badge: `−${MISS_PENALTY} · NO RESPONSE`,
+  };
 }
 
 export function snoozePost(count: number): { text: string; badge: string } {

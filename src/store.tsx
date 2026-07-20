@@ -34,6 +34,8 @@ export interface AlarmSettings {
   /** monday-first */
   repeat: boolean[];
   armed: boolean;
+  /** when the alarm was last armed; occurrences before this never count as missed */
+  armedAt: number;
   noSnooze: boolean;
   wakeCheckRounds: number;
   sound: SoundId;
@@ -57,7 +59,7 @@ export interface MyPost {
   text: string;
   time: string;
   badge: string;
-  tone: 'olive' | 'rust' | 'blue';
+  tone: 'olive' | 'rust' | 'blue' | 'yellow';
 }
 
 export interface GameState {
@@ -69,8 +71,12 @@ export interface GameState {
   points: number;
   streak: number;
   bestStreak: number;
+  /** local day key of the last morning that reached an outcome (win or miss) */
+  lastResolvedDay: string | null;
   checklistDone: string[];
   sleepMode: boolean;
+  /** local day key when hygiene points were last granted */
+  hygieneAwardedDay: string | null;
   myPosts: MyPost[];
   reactions: Record<string, boolean>;
   morning: MorningState;
@@ -83,6 +89,7 @@ export const initialState: GameState = {
     time: '6:30 am',
     repeat: [true, true, true, true, true, false, false],
     armed: true,
+    armedAt: Date.now(),
     noSnooze: true,
     wakeCheckRounds: 3,
     sound: 'sunrise-klaxon',
@@ -103,8 +110,10 @@ export const initialState: GameState = {
   points: 68,
   streak: 4,
   bestStreak: 4,
+  lastResolvedDay: null,
   checklistDone: ['caffeine', 'phone'],
   sleepMode: false,
+  hygieneAwardedDay: null,
   myPosts: [],
   reactions: {},
   morning: idleMorning,
