@@ -1,0 +1,12 @@
+{
+  "name": "snoozeulose",
+  "short_name": "snoozeulose",
+  "description": "the social alarm game. wake on the first ring, or the whole squad finds out.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#14100d",
+  "theme_color": "#14100d",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

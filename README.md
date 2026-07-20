@@ -18,7 +18,11 @@ bun run build  # typecheck + production build
 - +10 for dismissing on the first ring, streak +1
 - -5 per snooze, and it posts "snoozing…" to your squad
 - 1 snooze: streak survives. 2+: streak resets
+- No dismiss within 45 minutes: -15, streak resets, and "NO RESPONSE" posts to the squad. Detected live or retroactively on your next app open
+- Open the app within the 45-minute window of a ring you weren't there for and it rings late instead of skipping to tomorrow
 - Wake check: 3 math sprints before you're officially up
+- Wind-down checklist pays +2 per item when you start sleep mode, once per night
+- Streak milestones post every 5 days (toggle in sharing). First-ring win posts respect the sharing toggle; snoozes and misses always post
 
 ## QA helpers
 
