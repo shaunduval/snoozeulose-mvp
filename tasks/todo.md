@@ -34,3 +34,4 @@ Source of truth: claude.ai/design project `e8805c54` → `snoozeulose.dc.html` (
 - QA note: the embedded browser replays prior clicks after each page load, which ghost-walked the morning flow during testing (streak inflated to 8 in the demo state). App logic is unaffected; unit tests cover the transitions. Clear localStorage to reset the demo.
 - Deviations from the doc, all additive: a settings list on the You tab so screens 10-12 and 15 are reachable, snooze hidden when no-snooze mode is on, victory screen has -5/streak-lost variants for snoozed mornings.
 - Not built (needs a backend): real squads/accounts, actual social posting, web push. The PWA is installable with a minimal service worker.
+- Deployed to Cloudflare Pages: https://snoozeulose.pages.dev (project `snoozeulose`, production branch main). Redeploy with `bun run build && bunx wrangler pages deploy dist --project-name snoozeulose --branch main`.
