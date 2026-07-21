@@ -1,5 +1,19 @@
 # snoozeulose MVP — build plan
 
+## Microsite — "7:00:00" scroll-film (2026-07-20, branch `microsite`)
+
+Concept picked via /mobile-microsite: the page is your first morning in the game. Kinetic Type, Lane A (pure code, no video credits). Lives at `microsite/index.html`, single self-contained file. CTA target: https://snoozeulose.pages.dev.
+
+- [x] Build `microsite/index.html`: continuous film (tall driver + sticky stage, lerped playhead), chapters night → hours scrub → 7:00 ring → covers-drag station (snooze shame branch) → wake check → +10 victory → leaderboard → finale spring CTA. WOW kit: wind-down preloader, touch z-spawner, velocity grade, synthesized WebAudio sound (muted default), theme-color journey, haptics, premium finale bloom. Conversion law: clear hero offer, one CTA, fast-path pill, real scoring facts only, `window.__convert` stub. Dev contract: `?jump`/`?jumpp` + `window.__ready`. Reduced-motion static editorial fallback. Lenis on fine pointer only; hand-rolled tick (no GSAP needed for this chassis).
+- [x] Serve via launch.json static server (port 4173) + `phone-shell.sh` preview
+- [x] Verify: mshot beats, collision sweep (12 positions), jank --mobile, desktop shot, teaser MP4
+- [x] Review pass at phone viewport; fix anything flat or colliding
+- [x] Commit on `microsite` branch; offer deploy (separate Cloudflare Pages project)
+
+Review: 15 phone screenshots + sweep read as a contact sheet. Fixed from evidence: covers mid-fade ghost (now rises opaque with the ring), RING row-2 stroke invisible on red (now cream), sound toggle colliding with the snooze pill (station raised to 12cqh), streak odometer clipping (align-items fought the roll), fixed HUD/pill floating over after-film content (film chrome now exits with the film), ringSub bleeding between shame toasts, hidden layers eating touches at opacity 0 (visibility gating). Jank at 4× CPU throttle: p95 10ms, 0 spikes after pre-rasterizing heavy layers behind the preloader (was 5 spikes from first-paint raster). Interactive drag + 2-snooze shame branch tested live: outcome propagates to victory copy, odometer (DAY 0 rust), HUD, board note, feed badge — the game's real rules render the ending. Events fire: station_complete/station_snooze/cta_view/film_complete. Teaser: 20s 9:16 MP4 via ffmpeg-static.
+
+Design commitments: app palette (#14100d/#f5ecdc/#f2cf1d/#ee4623/#a9ced8), Geomini + Space Mono, tilted-tile logo lockup, real squad sim data (tiah/larry/timothy), real scoring (+10/−5/−15/+2, 45-min window).
+
 ## Iteration 2 — close the free-ride holes (2026-07-20)
 
 Decisions: skip the snoozeulose.app custom domain. Client-side only, no backend yet.
