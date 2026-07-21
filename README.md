@@ -30,3 +30,10 @@ bun run build  # typecheck + production build
 - `?screen=<name>` deep-links any screen (splash, home, squad, you, firstRing, wakeCheck, snoozeAftermath, victory, weeklyRecap, windDown, alarmEditor, squadUp, socialStatus, sharingSettings, soundSettings, notifications)
 
 State persists in localStorage under `snoozeulose:v1`. Clear it to replay onboarding.
+
+## Microsite
+
+`microsite/` is the scroll-film landing page ("7:00:00" — one continuous morning, scrubbed by scroll), live at https://snoozeulose-site.pages.dev. Single self-contained `index.html`; `phone.html` frames it in an iPhone shell for desktop demos. Serve locally with any static server on the `microsite/` dir (`.claude/launch.json` has a `microsite` entry, port 4173).
+
+- QA: `?jump=<px>` or `?jumpp=<0..1>` lands pre-scrolled and settled, `?debug=1` logs a jank meter
+- Deploy: `bunx wrangler pages deploy microsite --project-name snoozeulose-site --branch main`
