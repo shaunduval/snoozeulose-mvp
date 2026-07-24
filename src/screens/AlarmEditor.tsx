@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Micro, Phone, PrimaryButton, Spacer, Toggle } from '../components/ui';
+import { Micro, Phone, PrimaryButton, Spacer, TabBar, Toggle } from '../components/ui';
 import { useNow } from '../hooks';
 import { formatClock, parseAlarm, ringsIn } from '../lib/time';
 import { SOUND_NAMES, useGame } from '../store';
@@ -166,6 +166,7 @@ export function AlarmEditor() {
       >
         THE SQUAD SEES YOUR ALARM TIME, NOT YOUR EXCUSES
       </div>
+      {state.onboarded && <TabBar active="alarm" />}
     </Phone>
   );
 }
