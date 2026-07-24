@@ -85,7 +85,7 @@ export function Splash() {
         </div>
       </div>
       <div style={{ fontSize: 46, lineHeight: 1.02, letterSpacing: '-0.8px', marginTop: 30 }}>
-        snooze<span style={{ color: 'var(--alarm)' }}>u</span>lose
+        snooze<span style={{ color: 'var(--blue)' }}>u</span>lose
       </div>
       <Micro color="var(--yellow)" style={{ letterSpacing: '2px', marginTop: 12 }}>
         THE SOCIAL ALARM GAME
