@@ -1,4 +1,4 @@
-import { Avatar, FooterNote, Phone, Pill, PrimaryButton, Spacer, Toggle } from '../components/ui';
+import { Avatar, FooterNote, Phone, Pill, PrimaryButton, Spacer, TabBar, Toggle } from '../components/ui';
 import { useGame } from '../store';
 
 export function SocialStatus() {
@@ -82,6 +82,7 @@ export function SocialStatus() {
         {state.accountsConnected ? 'accounts connected ✓' : 'connect accounts'}
       </PrimaryButton>
       <FooterNote>SNOOZES POST TOO. THAT'S THE POINT.</FooterNote>
+      <TabBar active="you" />
     </Phone>
   );
 }
