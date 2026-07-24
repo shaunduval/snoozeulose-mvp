@@ -1,4 +1,4 @@
-import { CheckIcon, FooterNote, Micro, Phone, PrimaryButton, Spacer } from '../components/ui';
+import { CheckIcon, FooterNote, Micro, Phone, PrimaryButton, Spacer, TabBar } from '../components/ui';
 import { useNow } from '../hooks';
 import { dayKey, lightsOut, ringsIn } from '../lib/time';
 import { useGame } from '../store';
@@ -95,6 +95,7 @@ export function WindDown() {
       <Spacer />
       <PrimaryButton onClick={startSleepMode}>i'm in bed — start sleep mode</PrimaryButton>
       <FooterNote>HYGIENE POINTS COUNT TOWARD THE WEEKLY BOARD</FooterNote>
+      <TabBar active="alarm" />
     </Phone>
   );
 }
