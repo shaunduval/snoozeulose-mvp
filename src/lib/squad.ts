@@ -70,6 +70,21 @@ export const SQUAD: SquadMember[] = [
     boardTag: '3 SNOOZES TODAY',
     boardTagTone: 'rust',
   },
+  {
+    id: 'yazmin',
+    name: 'yazmin r.',
+    initial: 'y',
+    alarm: '6:15 am',
+    score: 88,
+    outcome: 'first-ring',
+    postAt: { h: 6, m: 17 },
+    postTime: '6:17 AM',
+    postText: 'up on the first ring. still not a morning person though.',
+    postBadge: '+10 · FIRST RING',
+    badgeTone: 'olive',
+    boardTag: '3-DAY STREAK',
+    boardTagTone: 'olive',
+  },
 ];
 
 /** timothy finally drags himself up at 8:00 am. */
