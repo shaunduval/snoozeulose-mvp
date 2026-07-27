@@ -6,6 +6,7 @@ const MEMBERS = [
   { initial: 't', name: 'tiah s.', joined: true },
   { initial: 'l', name: 'larry w.', joined: true },
   { initial: 't', name: 'timothy s.', joined: false },
+  { initial: 'y', name: 'yazmin r.', joined: true },
 ];
 
 export function SquadUp() {
@@ -47,7 +48,7 @@ export function SquadUp() {
         }}
       />
       <div style={{ border: '1px solid var(--cream-border)', borderRadius: 18, padding: '14px 16px', marginTop: 14 }}>
-        <Micro>MEMBERS · 3 OF 10</Micro>
+        <Micro>MEMBERS · {MEMBERS.length} OF 10</Micro>
         {MEMBERS.map((member) => (
           <div key={member.name} style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
             <Avatar initial={member.initial} />
