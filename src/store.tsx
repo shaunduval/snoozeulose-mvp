@@ -62,6 +62,13 @@ export interface MyPost {
   tone: 'olive' | 'rust' | 'blue' | 'yellow';
 }
 
+export interface SquadReaction {
+  id: string;
+  memberId: string;
+  text: string;
+  time: string;
+}
+
 export interface GameState {
   onboarded: boolean;
   squadName: string;
@@ -79,6 +86,7 @@ export interface GameState {
   hygieneAwardedDay: string | null;
   myPosts: MyPost[];
   reactions: Record<string, boolean>;
+  squadReactions: SquadReaction[];
   morning: MorningState;
 }
 
@@ -116,6 +124,7 @@ export const initialState: GameState = {
   hygieneAwardedDay: null,
   myPosts: [],
   reactions: {},
+  squadReactions: [],
   morning: idleMorning,
 };
 
