@@ -1,8 +1,10 @@
 # snoozeulose
 
-The social alarm game. Wake on the first ring, or the whole squad finds out.
+Snoozeulose is a social alarm clock: set a time, add a squad (friends, family, coworkers, whoever), and every morning posts itself, first ring, snooze, or slept through, all of it scored. Wake on time or the whole squad finds out; that's the whole pitch. I built the mechanics behind it too: 16 screens, a real scoring engine with tests, live at snoozeulose.pages.dev.
 
-MVP web app built from the claude.ai/design mockup (16 screens, dark mode, Geomini). Squad members are simulated client-side; the alarm engine, scoring, streaks, and wake check are real.
+The core build, all 16 screens, the engine, the microsite, took 1 day: July 20. Everything since has been real iteration: fixes, a new squad member, and on July 28, a live wire so one squad member reacts to your actual morning through Claude instead of a script. First backend code in this repo, first LLM call too.
+
+Squad members are simulated client-side (scripted against the clock); the alarm engine, scoring, streaks, and wake check are real.
 
 ## Run it
 
