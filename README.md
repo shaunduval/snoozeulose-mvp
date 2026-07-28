@@ -4,7 +4,9 @@ Snoozeulose is a social alarm clock: set a time, add a squad (friends, family, c
 
 The core build, all 16 screens, the engine, the microsite, took 1 day: July 20. Everything since has been real iteration: fixes, a new squad member, and on July 28, a live wire so one squad member reacts to your actual morning through Claude instead of a script. First backend code in this repo, first LLM call too.
 
-Squad members are simulated client-side (scripted against the clock); the alarm engine, scoring, streaks, and wake check are real.
+## What's an MVP?
+
+MVP means minimum viable product: the smallest real version of an idea, built to prove it works before investing more in it. This is one. Every screen is built and the scoring engine is real, not a mockup. What's still standing in is the squad: for now, squad members are simulated client-side (scripted against the clock), not real accounts other people log into. The alarm engine, scoring, streaks, and wake check are all real.
 
 ## Run it
 
