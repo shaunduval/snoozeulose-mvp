@@ -47,6 +47,10 @@ export function SquadBoard() {
       return { id: m.id, name: m.name, initial: m.initial, time: m.postTime, ...post };
     }),
     ...state.myPosts.map((p) => ({ id: p.id, name: 'shaun d.', initial: 's', time: p.time, text: p.text, badge: p.badge, tone: p.tone })),
+    ...state.squadReactions.map((r) => {
+      const member = SQUAD.find((m) => m.id === r.memberId) ?? SQUAD[0];
+      return { id: r.id, name: member.name, initial: member.initial, time: r.time, text: r.text, badge: 'REACTING', tone: 'blue' as const };
+    }),
   ];
 
   return (

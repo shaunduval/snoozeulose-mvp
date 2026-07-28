@@ -4,6 +4,7 @@ import type { GameState, Screen } from './store';
 import { assessAlarm, missMorning, missedPost, resetMorning, startRing, MISS_GRACE_MINUTES } from './lib/game';
 import { dayKey, fmtTimeOfDay, nextOccurrence } from './lib/time';
 import { startKlaxon, stopKlaxon } from './lib/sound';
+import { fetchSquadReaction } from './lib/squadReact';
 import { Splash } from './screens/Splash';
 import { SquadUp } from './screens/SquadUp';
 import { AlarmEditor } from './screens/AlarmEditor';
@@ -40,6 +41,9 @@ const SCREENS: Record<Screen, () => React.JSX.Element> = {
 export default function App() {
   const { state, screen, go, update } = useGame();
   const fireAtRef = useRef<number | null>(null);
+  // guards against double-firing the reaction fetch when strict mode
+  // double-invokes the mount effect (applyMiss itself is already idempotent)
+  const missReactionGuard = useRef<string | null>(null);
 
   const idle = state.morning.phase === 'idle';
 
@@ -64,8 +68,10 @@ export default function App() {
       update((s) => ({ ...s, morning: startRing(s.morning, Date.now()) }));
       go('firstRing');
     } else if (verdict.kind === 'missed') {
+      const occurredAt = new Date(verdict.occurredAt);
       const postedAt = new Date(verdict.occurredAt + MISS_GRACE_MINUTES * 60_000);
-      update((s) => applyMiss(s, new Date(verdict.occurredAt), postedAt));
+      update((s) => applyMiss(s, occurredAt, postedAt));
+      triggerMissReaction(occurredAt, state, missReactionGuard, update);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -84,6 +90,7 @@ export default function App() {
       } else if ((phase === 'ringing' || phase === 'aftermath') && graceOver) {
         const at = new Date(now);
         update((s) => applyMiss(s, at, at));
+        triggerMissReaction(at, state, missReactionGuard, update);
         go('home');
       } else if (phase === 'aftermath' && nextRingAt !== null && now >= nextRingAt) {
         update((s) => ({ ...s, morning: startRing(s.morning, now) }));
@@ -137,4 +144,25 @@ function applyMiss(s: GameState, occurred: Date, postedAt: Date): GameState {
       { id: `me-${postedAt.getTime()}`, text: post.text, badge: post.badge, tone: 'blue' as const, time: fmtTimeOfDay(postedAt) },
     ],
   };
+}
+
+/** Fires the squad reaction once per real miss, keyed on the day it occurred. */
+function triggerMissReaction(
+  occurred: Date,
+  state: GameState,
+  guard: { current: string | null },
+  update: (patch: (state: GameState) => GameState) => void
+) {
+  const key = dayKey(occurred);
+  if (guard.current === key) return;
+  guard.current = key;
+  fetchSquadReaction({
+    outcome: 'missed',
+    snoozeCount: state.morning.snoozeCount,
+    streak: 0,
+    squadName: state.squadName,
+    time: fmtTimeOfDay(new Date()),
+  }).then((reaction) => {
+    if (reaction) update((s) => ({ ...s, squadReactions: [...s.squadReactions, reaction] }));
+  });
 }

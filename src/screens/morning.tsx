@@ -6,6 +6,7 @@ import * as game from '../lib/game';
 import { answerFor, makeProblems, WAKE_CHECK_STALL_SECONDS } from '../lib/wakeCheck';
 import type { Problem } from '../lib/wakeCheck';
 import { dayKey, fmtCountdown, fmtShortDate, fmtTimeOfDay } from '../lib/time';
+import { fetchSquadReaction } from '../lib/squadReact';
 import { useGame } from '../store';
 import type { MyPost } from '../store';
 
@@ -135,6 +136,21 @@ export function WakeCheck() {
           }
           return { ...s, ...me, morning, lastResolvedDay: dayKey(new Date()), myPosts: posts };
         });
+        // reuse the same pure transition to get the resulting streak for the reaction call,
+        // without touching the update() above — same inputs, no side effects either way
+        const snoozeCount = state.morning.snoozeCount;
+        if (snoozeCount === 0 ? state.sharing.firstRingWins : true) {
+          const { me } = game.winMorning(state.morning, meOf(state), Date.now());
+          fetchSquadReaction({
+            outcome: 'won',
+            snoozeCount,
+            streak: me.streak,
+            squadName: state.squadName,
+            time: fmtTimeOfDay(new Date()),
+          }).then((reaction) => {
+            if (reaction) update((s) => ({ ...s, squadReactions: [...s.squadReactions, reaction] }));
+          });
+        }
         go('victory');
       } else {
         setRound((r) => r + 1);
