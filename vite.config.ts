@@ -7,6 +7,6 @@ export default defineConfig({
   server: { port: 3000 },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'functions/**/*.test.ts'],
   },
 });
